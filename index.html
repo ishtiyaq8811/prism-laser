@@ -1413,6 +1413,7 @@
               type: TILE_EMPTY,
               fixed: false,
               rot: 0,
+              dir: DIR_RIGHT,
               color: COLOR_NONE,
               reqColor: COLOR_NONE,
               active: false,
@@ -1429,6 +1430,7 @@
           cell.type = tile.type;
           cell.fixed = tile.fixed !== false;
           cell.rot = tile.rot || 0;
+          cell.dir = tile.dir !== undefined ? tile.dir : DIR_RIGHT;
           cell.color = tile.color || COLOR_NONE;
           cell.reqColor = tile.reqColor || COLOR_NONE;
           cell.filterColor = tile.filterColor || COLOR_NONE;
@@ -1473,11 +1475,11 @@
           for (let x = 0; x < state.gridSize; x++) {
             const cell = state.board[y][x];
             if (cell.type === TILE_EMITTER) {
-              const delta = DIR_DELTAS[cell.dir];
+              const emitterDir = cell.dir !== undefined ? cell.dir : DIR_RIGHT;
               rayQueue.push({
                 x: cell.x,
                 y: cell.y,
-                dir: cell.dir,
+                dir: emitterDir,
                 color: cell.color,
                 depth: 0
               });
@@ -1491,6 +1493,7 @@
         while (rayQueue.length > 0) {
           const ray = rayQueue.shift();
           if (ray.depth > maxSteps || ray.color === COLOR_NONE) continue;
+          if (ray.dir === undefined || !DIR_DELTAS[ray.dir]) continue;
 
           const stateKey = `${ray.x},${ray.y},${ray.dir},${ray.color}`;
           if (visitedStates.has(stateKey)) continue;
@@ -1811,6 +1814,7 @@
           type: c.type,
           fixed: c.fixed,
           rot: c.rot,
+          dir: c.dir,
           filterColor: c.filterColor
         })));
         const invSnapshot = state.inventory.map(i => ({ ...i }));
@@ -1830,6 +1834,7 @@
             state.board[y][x].type = saved.type;
             state.board[y][x].fixed = saved.fixed;
             state.board[y][x].rot = saved.rot;
+            state.board[y][x].dir = saved.dir !== undefined ? saved.dir : DIR_RIGHT;
             state.board[y][x].filterColor = saved.filterColor;
           }
         }
@@ -1975,7 +1980,7 @@
         ctx.shadowBlur = 0;
 
         // Direction pointer nozzle
-        const delta = DIR_DELTAS[cell.dir];
+        const delta = DIR_DELTAS[cell.dir] || DIR_DELTAS[DIR_RIGHT];
         ctx.fillStyle = '#fff';
         ctx.beginPath();
         ctx.moveTo(cx + delta.dx * r * 1.15, cy + delta.dy * r * 1.15);
@@ -2374,6 +2379,7 @@
               type: TILE_EMPTY,
               fixed: false,
               rot: 0,
+              dir: DIR_RIGHT,
               color: COLOR_NONE,
               reqColor: COLOR_NONE,
               active: false,
