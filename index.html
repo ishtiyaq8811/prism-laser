@@ -1,0 +1,2520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Prism Laser: Quantum Optics</title>
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --bg-card: rgba(16, 24, 44, 0.85);
+      --border-glow: rgba(0, 240, 255, 0.25);
+      --cyan: #00f0ff;
+      --magenta: #ff00ff;
+      --yellow: #ffea00;
+      --green: #00ff88;
+      --red: #ff3366;
+      --blue: #0088ff;
+      --white: #ffffff;
+      --text: #e2e8f0;
+      --text-muted: #8492a6;
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 20%, #101c38 0%, #060911 80%);
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding-bottom: 24px;
+    }
+
+    /* Header & Navigation Bar */
+    header {
+      width: 100%;
+      max-width: 900px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-glow);
+      background: rgba(7, 11, 20, 0.7);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--cyan), var(--magenta));
+      border-radius: 6px;
+      box-shadow: 0 0 12px var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: linear-gradient(90deg, #fff, var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--cyan);
+      transform: translateY(-1px);
+    }
+
+    /* Main Container */
+    main {
+      width: 100%;
+      max-width: 900px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* Top HUD / Status Panel */
+    .hud-panel {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 12px;
+      padding: 10px 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .hud-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hud-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hud-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stars-indicator {
+      display: flex;
+      gap: 3px;
+      color: #ffb703;
+      font-size: 1rem;
+    }
+
+    .stars-indicator .dim {
+      opacity: 0.25;
+      color: #888;
+    }
+
+    /* Canvas Chamber Area */
+    .chamber-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 580px;
+      background: #04070e;
+      border: 2px solid var(--border-glow);
+      border-radius: 16px;
+      padding: 8px;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
+      touch-action: none;
+    }
+
+    #gameCanvas {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 10px;
+      display: block;
+      cursor: pointer;
+      background: #020409;
+    }
+
+    /* Floating Tooltip / Instruction */
+    .chamber-hint {
+      position: absolute;
+      bottom: 16px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--cyan);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      opacity: 0.9;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Inventory & Controls Dock */
+    .dock-container {
+      width: 100%;
+      max-width: 580px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .dock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .dock-items {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      min-height: 70px;
+    }
+
+    .tool-btn {
+      position: relative;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .tool-btn:hover:not(.disabled) {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+
+    .tool-btn.active {
+      background: rgba(0, 240, 255, 0.22);
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+      transform: scale(1.05);
+    }
+
+    .tool-btn.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .tool-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .tool-count {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--cyan);
+      color: #000;
+      font-weight: 800;
+      font-size: 0.72rem;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    .tool-label {
+      font-size: 0.65rem;
+      margin-top: 3px;
+      color: var(--text-muted);
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 580px;
+      justify-content: space-between;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--cyan);
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.3), rgba(0, 136, 255, 0.3));
+      border-color: var(--cyan);
+      color: #fff;
+    }
+
+    .action-btn.primary:hover {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.45), rgba(0, 136, 255, 0.45));
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.3);
+    }
+
+    /* Modals & Overlays */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #0b1222;
+      border: 1px solid var(--border-glow);
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.25);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+      transform: translateY(20px);
+      transition: transform 0.25s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: translateY(0);
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-stars {
+      display: flex;
+      gap: 12px;
+      font-size: 2.2rem;
+      color: #ffb703;
+      margin: 8px 0;
+    }
+
+    .modal-stars .dim {
+      opacity: 0.2;
+      color: #777;
+    }
+
+    .modal-stats {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-row {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .stat-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    /* Level Selector Grid */
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      width: 100%;
+      margin: 12px 0;
+    }
+
+    .level-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.05rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .level-card:hover:not(.locked) {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .level-card.current {
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+      background: rgba(0, 240, 255, 0.2);
+    }
+
+    .level-card.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: rgba(255, 255, 255, 0.04);
+    }
+
+    .level-card-stars {
+      font-size: 0.65rem;
+      color: #ffb703;
+      margin-top: 2px;
+    }
+
+    /* Editor Sandbox Bar */
+    .editor-palette {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+
+    /* Instructions / Guide Modal */
+    .guide-section {
+      text-align: left;
+      width: 100%;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .guide-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .guide-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    /* Animations */
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.04); }
+    }
+
+    .glow-pulse {
+      animation: pulseGlow 1.8s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header>
+    <div class="brand" id="brandBtn">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-title">PRISM LASER</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="soundToggleBtn" title="Toggle Sound FX">🔊</button>
+      <button class="btn-icon" id="musicToggleBtn" title="Toggle Synth Pad">🎵</button>
+      <button class="btn-icon" id="levelSelectBtn" title="Level Select">🗺️</button>
+      <button class="btn-icon" id="guideBtn" title="How to Play">❓</button>
+    </div>
+  </header>
+
+  <!-- Main Playing Area -->
+  <main>
+    <!-- HUD Status -->
+    <div class="hud-panel">
+      <div class="hud-col">
+        <span class="hud-label">Chamber</span>
+        <span class="hud-val" id="chamberNumberText">#1: Genesis Beam</span>
+      </div>
+      <div class="hud-col">
+        <span class="hud-label">Moves / Par</span>
+        <span class="hud-val"><span id="movesVal">0</span> / <span id="parMovesVal">2</span></span>
+      </div>
+      <div class="hud-col">
+        <span class="hud-label">Cores Activated</span>
+        <span class="hud-val" id="coresStatusText">0 / 1</span>
+      </div>
+      <div class="hud-col">
+        <span class="hud-label">Rating</span>
+        <div class="stars-indicator" id="starsDisplay">
+          <span>★</span><span>★</span><span>★</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Laser Chamber Canvas -->
+    <div class="chamber-wrapper">
+      <canvas id="gameCanvas" width="560" height="560"></canvas>
+      <div class="chamber-hint" id="chamberHint">Tap an empty cell to place selected mirror. Tap placed piece to rotate.</div>
+    </div>
+
+    <!-- Inventory Dock -->
+    <div class="dock-container">
+      <div class="dock-header">
+        <span>Optical Inventory</span>
+        <span id="dockHelpText">Click tool then tap grid cell</span>
+      </div>
+      <div class="dock-items" id="inventoryDock">
+        <!-- Dynamically populated inventory buttons -->
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+      <button class="action-btn" id="resetBtn">🔄 Reset</button>
+      <button class="action-btn" id="undoBtn">↩️ Undo</button>
+      <button class="action-btn" id="hintBtn">💡 Hint</button>
+      <button class="action-btn primary" id="sandboxBtn">🛠️ Quantum Lab</button>
+    </div>
+  </main>
+
+  <!-- Level Select Modal -->
+  <div class="modal-overlay" id="levelModal">
+    <div class="modal-box">
+      <div class="modal-title">Select Optical Chamber</div>
+      <div class="stat-label">Total Stars Earned: <span id="totalStarsLabel" style="color:#ffb703; font-weight:700;">0 / 75</span></div>
+      <div class="level-grid" id="levelGridContainer"></div>
+      <div class="modal-buttons">
+        <button class="action-btn primary" id="closeLevelModalBtn">Back to Chamber</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Level Completed Modal -->
+  <div class="modal-overlay" id="victoryModal">
+    <div class="modal-box">
+      <div class="modal-title">✨ Resonance Achieved!</div>
+      <p style="color:var(--text-muted); font-size:0.85rem;">All quantum core crystals fully energized.</p>
+      <div class="modal-stars" id="victoryStars">
+        <span>★</span><span>★</span><span>★</span>
+      </div>
+      <div class="modal-stats">
+        <div class="stat-row">
+          <span class="stat-label">Moves Taken</span>
+          <span class="stat-val" id="statMoves">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Chamber Par</span>
+          <span class="stat-val" id="statPar">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Elapsed Time</span>
+          <span class="stat-val" id="statTime">00:00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Energy Efficiency</span>
+          <span class="stat-val" id="statEfficiency">100%</span>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="action-btn" id="replayLevelBtn">🔄 Replay</button>
+        <button class="action-btn primary" id="nextLevelBtn">Next Chamber ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guide / How to Play Modal -->
+  <div class="modal-overlay" id="guideModal">
+    <div class="modal-box">
+      <div class="modal-title">📘 Quantum Optics Field Manual</div>
+      <div class="guide-section">
+        <div class="guide-item">
+          <div class="guide-icon">🔴</div>
+          <div><strong>Emitters:</strong> Continuously fire high-intensity laser beams in a cardinal direction. Cannot be moved.</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">💎</div>
+          <div><strong>Resonator Crystals:</strong> Target cores that activate when struck by matching light color! Power all cores to solve the chamber.</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">🪞</div>
+          <div><strong>Silver Mirrors:</strong> Deflect incoming laser beams at 90 degrees. Tap to rotate diagonally ( / or \ ).</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">🔺</div>
+          <div><strong>Prism Splitters:</strong> Allows 50% of the beam to pass straight through, while splitting 50% orthogonally!</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">🟡</div>
+          <div><strong>Color Filters & Mixing:</strong> Primary colors (Red, Green, Blue) mix additively: R+G=Yellow, G+B=Cyan, R+B=Magenta, R+G+B=White!</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">🌀</div>
+          <div><strong>Quantum Portals:</strong> Beams entering Portal A exit Portal B in the exact same travel direction.</div>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="action-btn primary" id="closeGuideBtn">Got it, Let's Play!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Engine -->
+  <script>
+    /* ==========================================================================
+       PRISM LASER: QUANTUM OPTICS
+       Single-File Vanilla JS Engine + Canvas Raycaster + Web Audio Synthesizer
+       ========================================================================== */
+
+    (function() {
+      'use strict';
+
+      // --- Constants & Color Bitmasks ---
+      const COLOR_NONE    = 0;
+      const COLOR_RED     = 1; // 001
+      const COLOR_GREEN   = 2; // 010
+      const COLOR_BLUE    = 4; // 100
+      const COLOR_YELLOW  = 3; // 011 (Red + Green)
+      const COLOR_MAGENTA = 5; // 101 (Red + Blue)
+      const COLOR_CYAN    = 6; // 110 (Green + Blue)
+      const COLOR_WHITE   = 7; // 111 (Red + Green + Blue)
+
+      const COLOR_HEX = {
+        [COLOR_RED]:     '#ff3366',
+        [COLOR_GREEN]:   '#00ff88',
+        [COLOR_BLUE]:    '#0099ff',
+        [COLOR_YELLOW]:  '#ffea00',
+        [COLOR_MAGENTA]: '#ff00ff',
+        [COLOR_CYAN]:    '#00f0ff',
+        [COLOR_WHITE]:   '#ffffff'
+      };
+
+      const COLOR_NAMES = {
+        [COLOR_RED]:     'Red',
+        [COLOR_GREEN]:   'Green',
+        [COLOR_BLUE]:    'Blue',
+        [COLOR_YELLOW]:  'Yellow',
+        [COLOR_MAGENTA]: 'Magenta',
+        [COLOR_CYAN]:    'Cyan',
+        [COLOR_WHITE]:   'White'
+      };
+
+      // Directions: 0=UP, 1=RIGHT, 2=DOWN, 3=LEFT
+      const DIR_UP    = 0;
+      const DIR_RIGHT = 1;
+      const DIR_DOWN  = 2;
+      const DIR_LEFT  = 3;
+
+      const DIR_DELTAS = [
+        { dx:  0, dy: -1 }, // UP
+        { dx:  1, dy:  0 }, // RIGHT
+        { dx:  0, dy:  1 }, // DOWN
+        { dx: -1, dy:  0 }  // LEFT
+      ];
+
+      // Tile Types
+      const TILE_EMPTY    = 'empty';
+      const TILE_BLOCK    = 'block';
+      const TILE_EMITTER  = 'emitter';
+      const TILE_CRYSTAL  = 'crystal';
+      const TILE_MIRROR   = 'mirror';
+      const TILE_SPLITTER = 'splitter';
+      const TILE_FILTER   = 'filter';
+      const TILE_PORTAL   = 'portal';
+
+      // --- Sound Synthesizer (Web Audio API) ---
+      class SoundEngine {
+        constructor() {
+          this.ctx = null;
+          this.soundEnabled = true;
+          this.musicEnabled = false;
+          this.musicOsc1 = null;
+          this.musicOsc2 = null;
+          this.musicGain = null;
+        }
+
+        init() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+              this.ctx = new AudioCtx();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        }
+
+        playClick() {
+          if (!this.soundEnabled || !this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.04);
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.04);
+        }
+
+        playRotate() {
+          if (!this.soundEnabled || !this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(840, this.ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.08);
+        }
+
+        playPlace() {
+          if (!this.soundEnabled || !this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.09);
+          gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.09);
+        }
+
+        playCrystalResonance(colorMask) {
+          if (!this.soundEnabled || !this.ctx) return;
+          // Harmonic scale frequencies
+          const freqs = [523.25, 587.33, 659.25, 783.99, 880.00, 987.77, 1046.50];
+          const baseFreq = freqs[(colorMask - 1) % freqs.length];
+
+          const osc = this.ctx.createOscillator();
+          const harm = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'sine';
+          harm.type = 'triangle';
+          osc.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
+          harm.frequency.setValueAtTime(baseFreq * 2, this.ctx.currentTime);
+
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
+
+          osc.connect(gain);
+          harm.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          harm.start();
+          osc.stop(this.ctx.currentTime + 0.5);
+          harm.stop(this.ctx.currentTime + 0.5);
+        }
+
+        playVictory() {
+          if (!this.soundEnabled || !this.ctx) return;
+          // Uplifting pentatonic arpeggio
+          const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const startTime = this.ctx.currentTime + idx * 0.08;
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, startTime);
+            gain.gain.setValueAtTime(0.18, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.45);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.45);
+          });
+        }
+
+        toggleMusic() {
+          this.init();
+          this.musicEnabled = !this.musicEnabled;
+          if (this.musicEnabled) {
+            this.startSynthDrone();
+          } else {
+            this.stopSynthDrone();
+          }
+          return this.musicEnabled;
+        }
+
+        startSynthDrone() {
+          if (!this.ctx) return;
+          this.stopSynthDrone();
+          this.musicGain = this.ctx.createGain();
+          this.musicGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+
+          this.musicOsc1 = this.ctx.createOscillator();
+          this.musicOsc2 = this.ctx.createOscillator();
+
+          this.musicOsc1.type = 'sine';
+          this.musicOsc2.type = 'sine';
+
+          this.musicOsc1.frequency.setValueAtTime(130.81, this.ctx.currentTime); // C3
+          this.musicOsc2.frequency.setValueAtTime(196.00, this.ctx.currentTime); // G3
+
+          this.musicOsc1.connect(this.musicGain);
+          this.musicOsc2.connect(this.musicGain);
+          this.musicGain.connect(this.ctx.destination);
+
+          this.musicOsc1.start();
+          this.musicOsc2.start();
+        }
+
+        stopSynthDrone() {
+          if (this.musicOsc1) {
+            try { this.musicOsc1.stop(); } catch(e) {}
+            this.musicOsc1 = null;
+          }
+          if (this.musicOsc2) {
+            try { this.musicOsc2.stop(); } catch(e) {}
+            this.musicOsc2 = null;
+          }
+        }
+      }
+
+      const audio = new SoundEngine();
+
+      // --- 25 Handcrafted Progressive Levels ---
+      const LEVELS = [
+        {
+          id: 1,
+          name: "Genesis Beam",
+          par: 1,
+          gridSize: 6,
+          grid: [
+            { x: 1, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_CYAN, fixed: true },
+            { x: 4, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_CYAN, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 2, rot: 0 }
+          ]
+        },
+        {
+          id: 2,
+          name: "Double Reflection",
+          par: 2,
+          gridSize: 6,
+          grid: [
+            { x: 1, y: 4, type: TILE_EMITTER, dir: DIR_UP, color: COLOR_RED, fixed: true },
+            { x: 4, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_RED, fixed: true },
+            { x: 2, y: 2, type: TILE_BLOCK, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 2, rot: 0 }
+          ]
+        },
+        {
+          id: 3,
+          name: "Twin Cores",
+          par: 2,
+          gridSize: 6,
+          grid: [
+            { x: 1, y: 2, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_GREEN, fixed: true },
+            { x: 4, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true },
+            { x: 4, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 1, rot: 0 },
+            { type: TILE_MIRROR, count: 1, rot: 0 }
+          ]
+        },
+        {
+          id: 4,
+          name: "Barrier Bypass",
+          par: 3,
+          gridSize: 6,
+          grid: [
+            { x: 0, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_YELLOW, fixed: true },
+            { x: 5, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_YELLOW, fixed: true },
+            { x: 2, y: 1, type: TILE_BLOCK, fixed: true },
+            { x: 3, y: 1, type: TILE_BLOCK, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 4, rot: 0 }
+          ]
+        },
+        {
+          id: 5,
+          name: "Prism Divergence",
+          par: 2,
+          gridSize: 7,
+          grid: [
+            { x: 1, y: 3, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_MAGENTA, fixed: true },
+            { x: 5, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true },
+            { x: 5, y: 5, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true },
+            { x: 3, y: 3, type: TILE_BLOCK, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 1, rot: 0 },
+            { type: TILE_MIRROR, count: 2, rot: 0 }
+          ]
+        },
+        {
+          id: 6,
+          name: "Primary Filtration",
+          par: 2,
+          gridSize: 7,
+          grid: [
+            { x: 1, y: 2, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_WHITE, fixed: true },
+            { x: 5, y: 2, type: TILE_CRYSTAL, reqColor: COLOR_RED, fixed: true },
+            { x: 5, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_BLUE, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 1, rot: 0 },
+            { type: TILE_FILTER, filterColor: COLOR_RED, count: 1 },
+            { type: TILE_FILTER, filterColor: COLOR_BLUE, count: 1 },
+            { type: TILE_MIRROR, count: 1, rot: 0 }
+          ]
+        },
+        {
+          id: 7,
+          name: "Quantum Wormhole",
+          par: 2,
+          gridSize: 7,
+          grid: [
+            { x: 1, y: 1, type: TILE_EMITTER, dir: DIR_DOWN, color: COLOR_CYAN, fixed: true },
+            { x: 1, y: 4, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 5, y: 2, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 5, y: 5, type: TILE_CRYSTAL, reqColor: COLOR_CYAN, fixed: true },
+            { x: 3, y: 3, type: TILE_BLOCK, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 2, rot: 0 }
+          ]
+        },
+        {
+          id: 8,
+          name: "Additive Fusion: Yellow",
+          par: 3,
+          gridSize: 7,
+          grid: [
+            { x: 1, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_RED, fixed: true },
+            { x: 5, y: 5, type: TILE_EMITTER, dir: DIR_UP, color: COLOR_GREEN, fixed: true },
+            { x: 5, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_YELLOW, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 2, rot: 0 }
+          ]
+        },
+        {
+          id: 9,
+          name: "Additive Fusion: Cyan",
+          par: 3,
+          gridSize: 7,
+          grid: [
+            { x: 1, y: 2, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_BLUE, fixed: true },
+            { x: 5, y: 5, type: TILE_EMITTER, dir: DIR_UP, color: COLOR_GREEN, fixed: true },
+            { x: 3, y: 5, type: TILE_CRYSTAL, reqColor: COLOR_CYAN, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 3, rot: 0 }
+          ]
+        },
+        {
+          id: 10,
+          name: "Chromatic Cascade",
+          par: 4,
+          gridSize: 8,
+          grid: [
+            { x: 1, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_WHITE, fixed: true },
+            { x: 6, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true },
+            { x: 6, y: 6, type: TILE_CRYSTAL, reqColor: COLOR_RED, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 1, rot: 0 },
+            { type: TILE_FILTER, filterColor: COLOR_GREEN, count: 1 },
+            { type: TILE_FILTER, filterColor: COLOR_RED, count: 1 },
+            { type: TILE_MIRROR, count: 2, rot: 0 }
+          ]
+        },
+        {
+          id: 11,
+          name: "Portal Ricochet",
+          par: 3,
+          gridSize: 8,
+          grid: [
+            { x: 0, y: 3, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_YELLOW, fixed: true },
+            { x: 3, y: 3, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 6, y: 1, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 6, y: 6, type: TILE_CRYSTAL, reqColor: COLOR_YELLOW, fixed: true },
+            { x: 4, y: 3, type: TILE_BLOCK, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 3, rot: 0 }
+          ]
+        },
+        {
+          id: 12,
+          name: "Dual Split Nexus",
+          par: 4,
+          gridSize: 8,
+          grid: [
+            { x: 1, y: 4, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_MAGENTA, fixed: true },
+            { x: 3, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true },
+            { x: 6, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true },
+            { x: 6, y: 7, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 2, rot: 0 },
+            { type: TILE_MIRROR, count: 2, rot: 0 }
+          ]
+        },
+        {
+          id: 13,
+          name: "The Spectral Trifecta",
+          par: 4,
+          gridSize: 8,
+          grid: [
+            { x: 1, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_RED, fixed: true },
+            { x: 1, y: 6, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_BLUE, fixed: true },
+            { x: 6, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_RED, fixed: true },
+            { x: 6, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true },
+            { x: 6, y: 6, type: TILE_CRYSTAL, reqColor: COLOR_BLUE, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 2, rot: 0 },
+            { type: TILE_MIRROR, count: 3, rot: 0 }
+          ]
+        },
+        {
+          id: 14,
+          name: "Prism Labyrinth",
+          par: 4,
+          gridSize: 8,
+          grid: [
+            { x: 0, y: 2, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_CYAN, fixed: true },
+            { x: 7, y: 5, type: TILE_CRYSTAL, reqColor: COLOR_CYAN, fixed: true },
+            { x: 2, y: 2, type: TILE_BLOCK, fixed: true },
+            { x: 5, y: 5, type: TILE_BLOCK, fixed: true },
+            { x: 4, y: 3, type: TILE_BLOCK, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 4, rot: 0 }
+          ]
+        },
+        {
+          id: 15,
+          name: "Subatomic Wormhole Loop",
+          par: 4,
+          gridSize: 8,
+          grid: [
+            { x: 1, y: 2, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_GREEN, fixed: true },
+            { x: 4, y: 2, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 2, y: 6, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 6, y: 6, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true },
+            { x: 6, y: 2, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 1, rot: 0 },
+            { type: TILE_MIRROR, count: 3, rot: 0 }
+          ]
+        },
+        {
+          id: 16,
+          name: "White Synthesis",
+          par: 5,
+          gridSize: 8,
+          grid: [
+            { x: 0, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_RED, fixed: true },
+            { x: 0, y: 4, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_GREEN, fixed: true },
+            { x: 0, y: 7, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_BLUE, fixed: true },
+            { x: 7, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_WHITE, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 4, rot: 0 }
+          ]
+        },
+        {
+          id: 17,
+          name: "Refraction Gauntlet",
+          par: 5,
+          gridSize: 8,
+          grid: [
+            { x: 1, y: 0, type: TILE_EMITTER, dir: DIR_DOWN, color: COLOR_YELLOW, fixed: true },
+            { x: 7, y: 7, type: TILE_CRYSTAL, reqColor: COLOR_YELLOW, fixed: true },
+            { x: 1, y: 3, type: TILE_BLOCK, fixed: true },
+            { x: 3, y: 5, type: TILE_BLOCK, fixed: true },
+            { x: 5, y: 3, type: TILE_BLOCK, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 5, rot: 0 }
+          ]
+        },
+        {
+          id: 18,
+          name: "Chromatic Matrix",
+          par: 5,
+          gridSize: 8,
+          grid: [
+            { x: 2, y: 0, type: TILE_EMITTER, dir: DIR_DOWN, color: COLOR_WHITE, fixed: true },
+            { x: 0, y: 6, type: TILE_CRYSTAL, reqColor: COLOR_RED, fixed: true },
+            { x: 4, y: 6, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true },
+            { x: 7, y: 6, type: TILE_CRYSTAL, reqColor: COLOR_BLUE, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 2, rot: 0 },
+            { type: TILE_FILTER, filterColor: COLOR_RED, count: 1 },
+            { type: TILE_FILTER, filterColor: COLOR_GREEN, count: 1 },
+            { type: TILE_FILTER, filterColor: COLOR_BLUE, count: 1 },
+            { type: TILE_MIRROR, count: 3, rot: 0 }
+          ]
+        },
+        {
+          id: 19,
+          name: "Portal Crossfire",
+          par: 5,
+          gridSize: 9,
+          grid: [
+            { x: 1, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_MAGENTA, fixed: true },
+            { x: 1, y: 7, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_CYAN, fixed: true },
+            { x: 4, y: 1, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 7, y: 4, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 7, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true },
+            { x: 7, y: 7, type: TILE_CRYSTAL, reqColor: COLOR_CYAN, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 5, rot: 0 }
+          ]
+        },
+        {
+          id: 20,
+          name: "Quantum Paradox",
+          par: 5,
+          gridSize: 9,
+          grid: [
+            { x: 0, y: 4, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_WHITE, fixed: true },
+            { x: 8, y: 2, type: TILE_CRYSTAL, reqColor: COLOR_YELLOW, fixed: true },
+            { x: 8, y: 6, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 1, rot: 0 },
+            { type: TILE_FILTER, filterColor: COLOR_RED | COLOR_GREEN, count: 1 },
+            { type: TILE_FILTER, filterColor: COLOR_RED | COLOR_BLUE, count: 1 },
+            { type: TILE_MIRROR, count: 4, rot: 0 }
+          ]
+        },
+        {
+          id: 21,
+          name: "Supernova Convergence",
+          par: 6,
+          gridSize: 9,
+          grid: [
+            { x: 2, y: 1, type: TILE_EMITTER, dir: DIR_DOWN, color: COLOR_RED, fixed: true },
+            { x: 6, y: 1, type: TILE_EMITTER, dir: DIR_DOWN, color: COLOR_BLUE, fixed: true },
+            { x: 4, y: 8, type: TILE_EMITTER, dir: DIR_UP, color: COLOR_GREEN, fixed: true },
+            { x: 4, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_WHITE, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_MIRROR, count: 4, rot: 0 }
+          ]
+        },
+        {
+          id: 22,
+          name: "Mirror Hall of Infinity",
+          par: 6,
+          gridSize: 9,
+          grid: [
+            { x: 1, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_GREEN, fixed: true },
+            { x: 4, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true },
+            { x: 7, y: 7, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true },
+            { x: 3, y: 1, type: TILE_BLOCK, fixed: true },
+            { x: 5, y: 7, type: TILE_BLOCK, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 1, rot: 0 },
+            { type: TILE_MIRROR, count: 6, rot: 0 }
+          ]
+        },
+        {
+          id: 23,
+          name: "Singularity Core",
+          par: 6,
+          gridSize: 9,
+          grid: [
+            { x: 1, y: 4, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_WHITE, fixed: true },
+            { x: 4, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_RED, fixed: true },
+            { x: 7, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_GREEN, fixed: true },
+            { x: 4, y: 7, type: TILE_CRYSTAL, reqColor: COLOR_BLUE, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 2, rot: 0 },
+            { type: TILE_FILTER, filterColor: COLOR_RED, count: 1 },
+            { type: TILE_FILTER, filterColor: COLOR_GREEN, count: 1 },
+            { type: TILE_FILTER, filterColor: COLOR_BLUE, count: 1 },
+            { type: TILE_MIRROR, count: 4, rot: 0 }
+          ]
+        },
+        {
+          id: 24,
+          name: "Tesseract Hyper-Routing",
+          par: 6,
+          gridSize: 9,
+          grid: [
+            { x: 0, y: 2, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_YELLOW, fixed: true },
+            { x: 3, y: 2, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 6, y: 6, type: TILE_PORTAL, portalId: 0, fixed: true },
+            { x: 8, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_YELLOW, fixed: true },
+            { x: 8, y: 8, type: TILE_CRYSTAL, reqColor: COLOR_YELLOW, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 1, rot: 0 },
+            { type: TILE_MIRROR, count: 5, rot: 0 }
+          ]
+        },
+        {
+          id: 25,
+          name: "The Quantum Singularity",
+          par: 7,
+          gridSize: 9,
+          grid: [
+            { x: 1, y: 1, type: TILE_EMITTER, dir: DIR_RIGHT, color: COLOR_WHITE, fixed: true },
+            { x: 7, y: 7, type: TILE_EMITTER, dir: DIR_LEFT, color: COLOR_BLUE, fixed: true },
+            { x: 4, y: 4, type: TILE_CRYSTAL, reqColor: COLOR_CYAN, fixed: true },
+            { x: 7, y: 1, type: TILE_CRYSTAL, reqColor: COLOR_MAGENTA, fixed: true },
+            { x: 1, y: 7, type: TILE_CRYSTAL, reqColor: COLOR_YELLOW, fixed: true }
+          ],
+          inventory: [
+            { type: TILE_SPLITTER, count: 2, rot: 0 },
+            { type: TILE_FILTER, filterColor: COLOR_GREEN, count: 1 },
+            { type: TILE_MIRROR, count: 6, rot: 0 }
+          ]
+        }
+      ];
+
+      // --- Game State Manager ---
+      const state = {
+        currentLevelIndex: 0,
+        gridSize: 8,
+        board: [], // 2D array [y][x] of cell objects
+        inventory: [], // [{ type, count, rot, filterColor }]
+        selectedToolIdx: 0,
+        moves: 0,
+        moveHistory: [],
+        startTime: null,
+        levelCompleted: false,
+        starsPerLevel: {},
+        highestLevelUnlocked: 0,
+        activeRays: [], // Ray segments for rendering
+        particles: [], // Dynamic photon spark particles
+        isProceduralMode: false
+      };
+
+      // Load persistent progress from localStorage
+      function loadSavedProgress() {
+        try {
+          const saved = localStorage.getItem('prism_laser_progress');
+          if (saved) {
+            const data = JSON.parse(saved);
+            state.starsPerLevel = data.stars || {};
+            state.highestLevelUnlocked = data.unlocked || 0;
+          }
+        } catch(e) {
+          console.warn("Storage access restricted:", e);
+        }
+      }
+
+      function saveProgress() {
+        try {
+          const payload = {
+            stars: state.starsPerLevel,
+            unlocked: state.highestLevelUnlocked
+          };
+          localStorage.setItem('prism_laser_progress', JSON.stringify(payload));
+        } catch(e) {
+          console.warn("Storage save error:", e);
+        }
+      }
+
+      // --- Canvas Setup ---
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      let cellSize = 60;
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.width * dpr; // 1:1 aspect ratio
+        ctx.scale(dpr, dpr);
+        cellSize = rect.width / state.gridSize;
+      }
+      window.addEventListener('resize', resizeCanvas);
+
+      // --- Level Initialization ---
+      function initLevel(levelIdx) {
+        state.currentLevelIndex = levelIdx;
+        state.isProceduralMode = false;
+        const lvl = LEVELS[levelIdx];
+        state.gridSize = lvl.gridSize || 8;
+        state.moves = 0;
+        state.moveHistory = [];
+        state.startTime = Date.now();
+        state.levelCompleted = false;
+
+        // Create empty board
+        state.board = [];
+        for (let y = 0; y < state.gridSize; y++) {
+          const row = [];
+          for (let x = 0; x < state.gridSize; x++) {
+            row.push({
+              x, y,
+              type: TILE_EMPTY,
+              fixed: false,
+              rot: 0,
+              color: COLOR_NONE,
+              reqColor: COLOR_NONE,
+              active: false,
+              filterColor: COLOR_NONE,
+              portalId: 0
+            });
+          }
+          state.board.push(row);
+        }
+
+        // Place fixed level tiles
+        lvl.grid.forEach(tile => {
+          const cell = state.board[tile.y][tile.x];
+          cell.type = tile.type;
+          cell.fixed = tile.fixed !== false;
+          cell.rot = tile.rot || 0;
+          cell.color = tile.color || COLOR_NONE;
+          cell.reqColor = tile.reqColor || COLOR_NONE;
+          cell.filterColor = tile.filterColor || COLOR_NONE;
+          cell.portalId = tile.portalId !== undefined ? tile.portalId : 0;
+        });
+
+        // Initialize inventory
+        state.inventory = lvl.inventory.map(item => ({
+          type: item.type,
+          count: item.count,
+          rot: item.rot || 0,
+          filterColor: item.filterColor || COLOR_NONE
+        }));
+
+        state.selectedToolIdx = state.inventory.length > 0 ? 0 : -1;
+
+        resizeCanvas();
+        updateHUD();
+        renderInventoryDock();
+        traceLaserRays();
+      }
+
+      // --- Ray Tracing Physics & Optics Simulator ---
+      function traceLaserRays() {
+        state.activeRays = [];
+
+        // Reset crystal activation states
+        for (let y = 0; y < state.gridSize; y++) {
+          for (let x = 0; x < state.gridSize; x++) {
+            if (state.board[y][x].type === TILE_CRYSTAL) {
+              state.board[y][x].active = false;
+              state.board[y][x].receivedColor = 0;
+            }
+          }
+        }
+
+        // Queue of ray pulses to simulate: { x, y, dir, color, depth }
+        const rayQueue = [];
+
+        // Push rays from all emitters
+        for (let y = 0; y < state.gridSize; y++) {
+          for (let x = 0; x < state.gridSize; x++) {
+            const cell = state.board[y][x];
+            if (cell.type === TILE_EMITTER) {
+              const delta = DIR_DELTAS[cell.dir];
+              rayQueue.push({
+                x: cell.x,
+                y: cell.y,
+                dir: cell.dir,
+                color: cell.color,
+                depth: 0
+              });
+            }
+          }
+        }
+
+        const visitedStates = new Set();
+        const maxSteps = 220;
+
+        while (rayQueue.length > 0) {
+          const ray = rayQueue.shift();
+          if (ray.depth > maxSteps || ray.color === COLOR_NONE) continue;
+
+          const stateKey = `${ray.x},${ray.y},${ray.dir},${ray.color}`;
+          if (visitedStates.has(stateKey)) continue;
+          visitedStates.add(stateKey);
+
+          const delta = DIR_DELTAS[ray.dir];
+          const nextX = ray.x + delta.dx;
+          const nextY = ray.y + delta.dy;
+
+          // Check grid boundaries
+          if (nextX < 0 || nextX >= state.gridSize || nextY < 0 || nextY >= state.gridSize) {
+            // Ray hits boundary edge
+            state.activeRays.push({
+              x1: ray.x, y1: ray.y,
+              x2: ray.x + delta.dx * 0.5,
+              y2: ray.y + delta.dy * 0.5,
+              color: ray.color,
+              dir: ray.dir
+            });
+            continue;
+          }
+
+          const targetCell = state.board[nextY][nextX];
+
+          // Record ray segment from center of (ray.x, ray.y) to (nextX, nextY)
+          state.activeRays.push({
+            x1: ray.x, y1: ray.y,
+            x2: nextX, y2: nextY,
+            color: ray.color,
+            dir: ray.dir
+          });
+
+          // Handle interactions with targetCell
+          switch (targetCell.type) {
+            case TILE_EMPTY:
+              // Ray continues straight
+              rayQueue.push({
+                x: nextX, y: nextY,
+                dir: ray.dir,
+                color: ray.color,
+                depth: ray.depth + 1
+              });
+              break;
+
+            case TILE_BLOCK:
+            case TILE_EMITTER:
+              // Ray absorbed / blocked
+              break;
+
+            case TILE_CRYSTAL:
+              // Crystal absorbs beam and checks color match
+              targetCell.receivedColor |= ray.color;
+              if ((targetCell.receivedColor & targetCell.reqColor) === targetCell.reqColor) {
+                targetCell.active = true;
+              }
+              break;
+
+            case TILE_MIRROR: {
+              // 45-degree reflection
+              // Rot 0 is "/" (UP <-> RIGHT, DOWN <-> LEFT)
+              // Rot 1 is "\" (UP <-> LEFT, DOWN <-> RIGHT)
+              let outDir = -1;
+              if (targetCell.rot % 2 === 0) { // "/"
+                if (ray.dir === DIR_UP)    outDir = DIR_RIGHT;
+                if (ray.dir === DIR_RIGHT) outDir = DIR_UP;
+                if (ray.dir === DIR_DOWN)  outDir = DIR_LEFT;
+                if (ray.dir === DIR_LEFT)  outDir = DIR_DOWN;
+              } else { // "\"
+                if (ray.dir === DIR_UP)    outDir = DIR_LEFT;
+                if (ray.dir === DIR_LEFT)  outDir = DIR_UP;
+                if (ray.dir === DIR_DOWN)  outDir = DIR_RIGHT;
+                if (ray.dir === DIR_RIGHT) outDir = DIR_DOWN;
+              }
+
+              if (outDir !== -1) {
+                rayQueue.push({
+                  x: nextX, y: nextY,
+                  dir: outDir,
+                  color: ray.color,
+                  depth: ray.depth + 1
+                });
+              }
+              break;
+            }
+
+            case TILE_SPLITTER: {
+              // Beam splits: 1 continues straight, 1 deflects 90 degrees
+              // Straight beam
+              rayQueue.push({
+                x: nextX, y: nextY,
+                dir: ray.dir,
+                color: ray.color,
+                depth: ray.depth + 1
+              });
+
+              // Orthogonal deflection depending on splitter rot
+              let splitDir = -1;
+              if (targetCell.rot % 2 === 0) {
+                if (ray.dir === DIR_UP)    splitDir = DIR_RIGHT;
+                if (ray.dir === DIR_RIGHT) splitDir = DIR_UP;
+                if (ray.dir === DIR_DOWN)  splitDir = DIR_LEFT;
+                if (ray.dir === DIR_LEFT)  splitDir = DIR_DOWN;
+              } else {
+                if (ray.dir === DIR_UP)    splitDir = DIR_LEFT;
+                if (ray.dir === DIR_LEFT)  splitDir = DIR_UP;
+                if (ray.dir === DIR_DOWN)  splitDir = DIR_RIGHT;
+                if (ray.dir === DIR_RIGHT) splitDir = DIR_DOWN;
+              }
+
+              if (splitDir !== -1) {
+                rayQueue.push({
+                  x: nextX, y: nextY,
+                  dir: splitDir,
+                  color: ray.color,
+                  depth: ray.depth + 1
+                });
+              }
+              break;
+            }
+
+            case TILE_FILTER: {
+              // Filters wavelength
+              const filteredColor = ray.color & targetCell.filterColor;
+              if (filteredColor > 0) {
+                rayQueue.push({
+                  x: nextX, y: nextY,
+                  dir: ray.dir,
+                  color: filteredColor,
+                  depth: ray.depth + 1
+                });
+              }
+              break;
+            }
+
+            case TILE_PORTAL: {
+              // Find matching portal
+              let matched = null;
+              for (let py = 0; py < state.gridSize; py++) {
+                for (let px = 0; px < state.gridSize; px++) {
+                  const pCell = state.board[py][px];
+                  if (pCell.type === TILE_PORTAL && pCell.portalId === targetCell.portalId && (px !== nextX || py !== nextY)) {
+                    matched = pCell;
+                    break;
+                  }
+                }
+                if (matched) break;
+              }
+
+              if (matched) {
+                rayQueue.push({
+                  x: matched.x, y: matched.y,
+                  dir: ray.dir,
+                  color: ray.color,
+                  depth: ray.depth + 1
+                });
+              }
+              break;
+            }
+          }
+        }
+
+        checkVictoryCondition();
+      }
+
+      // --- Victory & Completion Logic ---
+      function checkVictoryCondition() {
+        let totalCrystals = 0;
+        let activeCrystals = 0;
+
+        for (let y = 0; y < state.gridSize; y++) {
+          for (let x = 0; x < state.gridSize; x++) {
+            if (state.board[y][x].type === TILE_CRYSTAL) {
+              totalCrystals++;
+              if (state.board[y][x].active) {
+                activeCrystals++;
+              }
+            }
+          }
+        }
+
+        document.getElementById('coresStatusText').textContent = `${activeCrystals} / ${totalCrystals}`;
+
+        if (totalCrystals > 0 && activeCrystals === totalCrystals && !state.levelCompleted) {
+          state.levelCompleted = true;
+          handleLevelComplete();
+        }
+      }
+
+      function handleLevelComplete() {
+        audio.playVictory();
+
+        // Calculate stars
+        const lvl = LEVELS[state.currentLevelIndex];
+        const par = lvl ? lvl.par : 4;
+        let stars = 1;
+        if (state.moves <= par) {
+          stars = 3;
+        } else if (state.moves <= par + 2) {
+          stars = 2;
+        }
+
+        // Save high score / stars
+        const lvlKey = `lvl_${state.currentLevelIndex + 1}`;
+        const prevStars = state.starsPerLevel[lvlKey] || 0;
+        if (stars > prevStars) {
+          state.starsPerLevel[lvlKey] = stars;
+        }
+
+        if (state.currentLevelIndex + 1 > state.highestLevelUnlocked) {
+          state.highestLevelUnlocked = state.currentLevelIndex + 1;
+        }
+        saveProgress();
+
+        // Spawn celebration starlight particles
+        for (let i = 0; i < 40; i++) {
+          state.particles.push({
+            x: canvas.width / 2 / (window.devicePixelRatio || 1),
+            y: canvas.height / 2 / (window.devicePixelRatio || 1),
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            color: Object.values(COLOR_HEX)[Math.floor(Math.random() * 7)],
+            life: 1.0,
+            size: Math.random() * 5 + 3
+          });
+        }
+
+        // Show Victory Modal after 350ms
+        setTimeout(() => {
+          const victoryModal = document.getElementById('victoryModal');
+          const victoryStars = document.getElementById('victoryStars');
+          const elapsedSecs = Math.floor((Date.now() - state.startTime) / 1000);
+          const mins = String(Math.floor(elapsedSecs / 60)).padStart(2, '0');
+          const secs = String(elapsedSecs % 60).padStart(2, '0');
+
+          document.getElementById('statMoves').textContent = state.moves;
+          document.getElementById('statPar').textContent = par;
+          document.getElementById('statTime').textContent = `${mins}:${secs}`;
+          document.getElementById('statEfficiency').textContent = `${Math.max(40, Math.round((par / Math.max(par, state.moves)) * 100))}%`;
+
+          victoryStars.innerHTML = `
+            <span class="${stars >= 1 ? '' : 'dim'}">★</span>
+            <span class="${stars >= 2 ? '' : 'dim'}">★</span>
+            <span class="${stars >= 3 ? '' : 'dim'}">★</span>
+          `;
+
+          victoryModal.classList.add('active');
+        }, 400);
+      }
+
+      // --- Board Manipulation & Moves ---
+      function handleCellClick(x, y) {
+        if (x < 0 || x >= state.gridSize || y < 0 || y >= state.gridSize) return;
+        audio.init();
+
+        const cell = state.board[y][x];
+
+        // 1. If cell has a movable player item -> rotate it!
+        if (cell.type !== TILE_EMPTY && !cell.fixed) {
+          cell.rot = (cell.rot + 1) % 4;
+          state.moves++;
+          audio.playRotate();
+          recordMoveState();
+          traceLaserRays();
+          updateHUD();
+          return;
+        }
+
+        // 2. If cell is empty and player has selected an inventory tool -> place it!
+        if (cell.type === TILE_EMPTY && state.selectedToolIdx >= 0) {
+          const tool = state.inventory[state.selectedToolIdx];
+          if (tool && tool.count > 0) {
+            cell.type = tool.type;
+            cell.fixed = false;
+            cell.rot = tool.rot || 0;
+            cell.filterColor = tool.filterColor || COLOR_NONE;
+            tool.count--;
+
+            state.moves++;
+            audio.playPlace();
+            recordMoveState();
+            renderInventoryDock();
+            traceLaserRays();
+            updateHUD();
+          }
+        }
+      }
+
+      function handleCellRightClick(x, y) {
+        if (x < 0 || x >= state.gridSize || y < 0 || y >= state.gridSize) return;
+        const cell = state.board[y][x];
+
+        // If player-placed piece -> return to inventory
+        if (cell.type !== TILE_EMPTY && !cell.fixed) {
+          const invMatch = state.inventory.find(item => item.type === cell.type && item.filterColor === cell.filterColor);
+          if (invMatch) {
+            invMatch.count++;
+          } else {
+            state.inventory.push({
+              type: cell.type,
+              count: 1,
+              rot: 0,
+              filterColor: cell.filterColor
+            });
+          }
+
+          cell.type = TILE_EMPTY;
+          cell.filterColor = COLOR_NONE;
+          cell.rot = 0;
+          audio.playClick();
+          renderInventoryDock();
+          traceLaserRays();
+          updateHUD();
+        }
+      }
+
+      function recordMoveState() {
+        const boardSnapshot = state.board.map(row => row.map(c => ({
+          type: c.type,
+          fixed: c.fixed,
+          rot: c.rot,
+          filterColor: c.filterColor
+        })));
+        const invSnapshot = state.inventory.map(i => ({ ...i }));
+        state.moveHistory.push({
+          board: boardSnapshot,
+          inventory: invSnapshot,
+          moves: state.moves
+        });
+      }
+
+      function undoLastMove() {
+        if (state.moveHistory.length === 0) return;
+        const last = state.moveHistory.pop();
+        for (let y = 0; y < state.gridSize; y++) {
+          for (let x = 0; x < state.gridSize; x++) {
+            const saved = last.board[y][x];
+            state.board[y][x].type = saved.type;
+            state.board[y][x].fixed = saved.fixed;
+            state.board[y][x].rot = saved.rot;
+            state.board[y][x].filterColor = saved.filterColor;
+          }
+        }
+        state.inventory = last.inventory;
+        state.moves = Math.max(0, state.moves - 1);
+        audio.playClick();
+        renderInventoryDock();
+        traceLaserRays();
+        updateHUD();
+      }
+
+      // --- Canvas Rendering Loop ---
+      let lastAnimTime = performance.now();
+
+      function render(now) {
+        const dt = (now - lastAnimTime) / 1000;
+        lastAnimTime = now;
+
+        const w = canvas.getBoundingClientRect().width;
+        cellSize = w / state.gridSize;
+
+        ctx.clearRect(0, 0, w, w);
+
+        // 1. Draw futuristic chamber grid
+        ctx.fillStyle = '#060a14';
+        ctx.fillRect(0, 0, w, w);
+
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= state.gridSize; i++) {
+          ctx.beginPath();
+          ctx.moveTo(i * cellSize, 0);
+          ctx.lineTo(i * cellSize, w);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(0, i * cellSize);
+          ctx.lineTo(w, i * cellSize);
+          ctx.stroke();
+        }
+
+        // 2. Draw tiles & optical hardware
+        for (let y = 0; y < state.gridSize; y++) {
+          for (let x = 0; x < state.gridSize; x++) {
+            drawTile(state.board[y][x], x * cellSize, y * cellSize, cellSize);
+          }
+        }
+
+        // 3. Draw Laser Rays with multi-layer glowing bloom
+        drawLaserRays();
+
+        // 4. Update and draw photon particles
+        updateAndDrawParticles(dt);
+
+        requestAnimationFrame(render);
+      }
+
+      function drawTile(cell, px, py, size) {
+        const cx = px + size / 2;
+        const cy = py + size / 2;
+
+        switch (cell.type) {
+          case TILE_BLOCK:
+            ctx.fillStyle = '#182238';
+            ctx.strokeStyle = '#2b3a5a';
+            ctx.lineWidth = 2;
+            ctx.fillRect(px + 4, py + 4, size - 8, size - 8);
+            ctx.strokeRect(px + 4, py + 4, size - 8, size - 8);
+            // Hazard stripe pattern
+            ctx.strokeStyle = '#3b4d75';
+            ctx.beginPath();
+            ctx.moveTo(px + 8, py + size - 8);
+            ctx.lineTo(px + size - 8, py + 8);
+            ctx.stroke();
+            break;
+
+          case TILE_EMITTER:
+            drawEmitter(cell, cx, cy, size);
+            break;
+
+          case TILE_CRYSTAL:
+            drawCrystal(cell, cx, cy, size);
+            break;
+
+          case TILE_MIRROR:
+            drawMirror(cell, cx, cy, size);
+            break;
+
+          case TILE_SPLITTER:
+            drawSplitter(cell, cx, cy, size);
+            break;
+
+          case TILE_FILTER:
+            drawFilter(cell, cx, cy, size);
+            break;
+
+          case TILE_PORTAL:
+            drawPortal(cell, cx, cy, size);
+            break;
+        }
+
+        // Fixed element indicator corner brackets
+        if (cell.fixed && cell.type !== TILE_EMPTY && cell.type !== TILE_BLOCK) {
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+          ctx.lineWidth = 1.5;
+          const pad = 3;
+          const len = 6;
+          // Top-left
+          ctx.beginPath();
+          ctx.moveTo(px + pad, py + pad + len);
+          ctx.lineTo(px + pad, py + pad);
+          ctx.lineTo(px + pad + len, py + pad);
+          ctx.stroke();
+          // Bottom-right
+          ctx.beginPath();
+          ctx.moveTo(px + size - pad, py + size - pad - len);
+          ctx.lineTo(px + size - pad, py + size - pad);
+          ctx.lineTo(px + size - pad - len, py + size - pad);
+          ctx.stroke();
+        }
+      }
+
+      function drawEmitter(cell, cx, cy, size) {
+        const color = COLOR_HEX[cell.color] || '#fff';
+        const r = size * 0.32;
+
+        // Metallic chassis
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Laser core
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Direction pointer nozzle
+        const delta = DIR_DELTAS[cell.dir];
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(cx + delta.dx * r * 1.15, cy + delta.dy * r * 1.15);
+        ctx.lineTo(cx + delta.dx * r * 0.6 - delta.dy * 5, cy + delta.dy * r * 0.6 + delta.dx * 5);
+        ctx.lineTo(cx + delta.dx * r * 0.6 + delta.dy * 5, cy + delta.dy * r * 0.6 - delta.dx * 5);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function drawCrystal(cell, cx, cy, size) {
+        const color = COLOR_HEX[cell.reqColor] || '#ff00ff';
+        const r = size * 0.34;
+        const isActive = cell.active;
+
+        if (isActive) {
+          // Radiant aura
+          ctx.save();
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 24;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r * 1.25, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Crystal facet hexagon
+        ctx.save();
+        ctx.fillStyle = isActive ? color : 'rgba(255, 255, 255, 0.08)';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        if (isActive) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 15;
+        }
+
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * Math.PI / 3) + (isActive ? performance.now() * 0.001 : 0);
+          const x = cx + r * Math.cos(angle);
+          const y = cy + r * Math.sin(angle);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Inner glowing core
+        ctx.fillStyle = isActive ? '#ffffff' : color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawMirror(cell, cx, cy, size) {
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        // Rot 0 is "/" (-45 deg), Rot 1 is "\" (45 deg)
+        const angle = cell.rot % 2 === 0 ? -Math.PI / 4 : Math.PI / 4;
+        ctx.rotate(angle);
+
+        const len = size * 0.72;
+        const thickness = 5;
+
+        // Dark substrate backing
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-len / 2, -thickness / 2 - 2, len, thickness + 4);
+
+        // Reflective silver front
+        ctx.fillStyle = '#e2e8f0';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 8;
+        ctx.fillRect(-len / 2, -thickness / 2, len, thickness);
+
+        // Metallic border
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(-len / 2, -thickness / 2, len, thickness);
+
+        ctx.restore();
+      }
+
+      function drawSplitter(cell, cx, cy, size) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        const angle = cell.rot % 2 === 0 ? -Math.PI / 4 : Math.PI / 4;
+        ctx.rotate(angle);
+
+        const s = size * 0.55;
+
+        // Semi-transparent dielectric prism crystal
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.25)';
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 10;
+
+        ctx.beginPath();
+        ctx.moveTo(-s / 2, s / 2);
+        ctx.lineTo(s / 2, s / 2);
+        ctx.lineTo(0, -s / 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Central refraction mark
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(0, s * 0.1, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawFilter(cell, cx, cy, size) {
+        const color = COLOR_HEX[cell.filterColor] || '#ffea00';
+        const r = size * 0.36;
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+
+        ctx.beginPath();
+        ctx.roundRect(cx - r, cy - r, r * 2, r * 2, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        // Filter glass lens
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        // Optical grid lines
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.5, cy);
+        ctx.lineTo(cx + r * 0.5, cy);
+        ctx.moveTo(cx, cy - r * 0.5);
+        ctx.lineTo(cx, cy + r * 0.5);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawPortal(cell, cx, cy, size) {
+        const r = size * 0.35;
+        const t = performance.now() * 0.003;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        // Swirling vortex rings
+        ctx.strokeStyle = '#bd00ff';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#bd00ff';
+        ctx.shadowBlur = 14;
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r, r * 0.6, t, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#00f0ff';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r * 0.7, r * 0.4, -t * 1.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Portal Singularity Core
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawLaserRays() {
+        if (!state.activeRays || state.activeRays.length === 0) return;
+
+        state.activeRays.forEach(ray => {
+          const color = COLOR_HEX[ray.color] || '#ffffff';
+          const x1 = ray.x1 * cellSize + cellSize / 2;
+          const y1 = ray.y1 * cellSize + cellSize / 2;
+          const x2 = ray.x2 * cellSize + cellSize / 2;
+          const y2 = ray.y2 * cellSize + cellSize / 2;
+
+          ctx.save();
+          // Outer bloom halo
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 6;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 16;
+          ctx.globalAlpha = 0.45;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+
+          // Inner intense core beam
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2.2;
+          ctx.shadowBlur = 6;
+          ctx.globalAlpha = 0.95;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+
+          ctx.restore();
+
+          // Continuous photon spark generation
+          if (Math.random() < 0.25) {
+            const lerp = Math.random();
+            state.particles.push({
+              x: x1 + (x2 - x1) * lerp,
+              y: y1 + (y2 - y1) * lerp,
+              vx: (Math.random() - 0.5) * 1.5,
+              vy: (Math.random() - 0.5) * 1.5,
+              color: color,
+              life: 1.0,
+              size: Math.random() * 2.5 + 1
+            });
+          }
+        });
+      }
+
+      function updateAndDrawParticles(dt) {
+        for (let i = state.particles.length - 1; i >= 0; i--) {
+          const p = state.particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life -= dt * 1.8;
+
+          if (p.life <= 0) {
+            state.particles.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.life;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      // --- UI Updates & HUD ---
+      function updateHUD() {
+        const lvl = LEVELS[state.currentLevelIndex];
+        const chamberTitle = state.isProceduralMode
+          ? "Procedural Quantum Lab"
+          : `#${lvl.id}: ${lvl.name}`;
+        const par = lvl ? lvl.par : 4;
+
+        document.getElementById('chamberNumberText').textContent = chamberTitle;
+        document.getElementById('movesVal').textContent = state.moves;
+        document.getElementById('parMovesVal').textContent = par;
+
+        // Dynamic star preview
+        let curStars = 1;
+        if (state.moves <= par) curStars = 3;
+        else if (state.moves <= par + 2) curStars = 2;
+
+        const starsDisplay = document.getElementById('starsDisplay');
+        starsDisplay.innerHTML = `
+          <span class="${curStars >= 1 ? '' : 'dim'}">★</span>
+          <span class="${curStars >= 2 ? '' : 'dim'}">★</span>
+          <span class="${curStars >= 3 ? '' : 'dim'}">★</span>
+        `;
+      }
+
+      function renderInventoryDock() {
+        const dock = document.getElementById('inventoryDock');
+        dock.innerHTML = '';
+
+        if (state.inventory.length === 0) {
+          dock.innerHTML = '<span style="color:var(--text-muted); font-size:0.85rem;">All optical tools placed</span>';
+          return;
+        }
+
+        state.inventory.forEach((item, idx) => {
+          const btn = document.createElement('div');
+          btn.className = `tool-btn ${idx === state.selectedToolIdx ? 'active' : ''} ${item.count <= 0 ? 'disabled' : ''}`;
+
+          let icon = '🪞';
+          let label = 'Mirror';
+
+          if (item.type === TILE_SPLITTER) {
+            icon = '🔺';
+            label = 'Splitter';
+          } else if (item.type === TILE_FILTER) {
+            icon = '🟡';
+            label = `${COLOR_NAMES[item.filterColor] || ''} Filter`;
+          } else if (item.type === TILE_PORTAL) {
+            icon = '🌀';
+            label = 'Portal';
+          }
+
+          btn.innerHTML = `
+            <div class="tool-count">${item.count}</div>
+            <div class="tool-icon">${icon}</div>
+            <div class="tool-label">${label}</div>
+          `;
+
+          btn.addEventListener('click', () => {
+            if (item.count > 0) {
+              state.selectedToolIdx = idx;
+              audio.playClick();
+              renderInventoryDock();
+            }
+          });
+
+          dock.appendChild(btn);
+        });
+      }
+
+      // --- Level Selector Screen ---
+      function openLevelSelect() {
+        const grid = document.getElementById('levelGridContainer');
+        grid.innerHTML = '';
+
+        let totalStars = 0;
+
+        LEVELS.forEach((lvl, idx) => {
+          const card = document.createElement('div');
+          const isUnlocked = idx <= state.highestLevelUnlocked;
+          const starsEarned = state.starsPerLevel[`lvl_${idx + 1}`] || 0;
+          totalStars += starsEarned;
+
+          card.className = `level-card ${isUnlocked ? '' : 'locked'} ${idx === state.currentLevelIndex ? 'current' : ''}`;
+          card.innerHTML = `
+            <div>${idx + 1}</div>
+            <div class="level-card-stars">
+              ${isUnlocked ? '★'.repeat(starsEarned) + '☆'.repeat(3 - starsEarned) : '🔒'}
+            </div>
+          `;
+
+          if (isUnlocked) {
+            card.addEventListener('click', () => {
+              audio.playClick();
+              document.getElementById('levelModal').classList.remove('active');
+              initLevel(idx);
+            });
+          }
+
+          grid.appendChild(card);
+        });
+
+        document.getElementById('totalStarsLabel').textContent = `${totalStars} / ${LEVELS.length * 3}`;
+        document.getElementById('levelModal').classList.add('active');
+      }
+
+      // --- Hint System ---
+      function giveHint() {
+        audio.playClick();
+        const hintEl = document.getElementById('chamberHint');
+
+        // Look for any empty cell on beam path or target alignment
+        hintEl.textContent = "Tip: Trace from emitter or crystal to place mirrors along orthogonal intersections!";
+        hintEl.style.color = '#ffea00';
+        setTimeout(() => {
+          hintEl.textContent = "Tap an empty cell to place selected mirror. Tap placed piece to rotate.";
+          hintEl.style.color = 'var(--cyan)';
+        }, 4000);
+      }
+
+      // --- Procedural Endless Quantum Lab ---
+      function generateProceduralLab() {
+        state.isProceduralMode = true;
+        state.gridSize = 7;
+        state.moves = 0;
+        state.moveHistory = [];
+        state.startTime = Date.now();
+        state.levelCompleted = false;
+
+        state.board = [];
+        for (let y = 0; y < state.gridSize; y++) {
+          const row = [];
+          for (let x = 0; x < state.gridSize; x++) {
+            row.push({
+              x, y,
+              type: TILE_EMPTY,
+              fixed: false,
+              rot: 0,
+              color: COLOR_NONE,
+              reqColor: COLOR_NONE,
+              active: false,
+              filterColor: COLOR_NONE,
+              portalId: 0
+            });
+          }
+          state.board.push(row);
+        }
+
+        // Random emitter on left or top
+        const emitterColor = [COLOR_CYAN, COLOR_MAGENTA, COLOR_YELLOW, COLOR_GREEN][Math.floor(Math.random() * 4)];
+        const ex = 0;
+        const ey = Math.floor(Math.random() * 5) + 1;
+        state.board[ey][ex] = {
+          x: ex, y: ey,
+          type: TILE_EMITTER,
+          dir: DIR_RIGHT,
+          color: emitterColor,
+          fixed: true
+        };
+
+        // Random crystal on right/bottom
+        const cx = 6;
+        const cy = Math.floor(Math.random() * 5) + 1;
+        state.board[cy][cx] = {
+          x: cx, y: cy,
+          type: TILE_CRYSTAL,
+          reqColor: emitterColor,
+          fixed: true
+        };
+
+        // Random obstacles
+        state.board[Math.floor(Math.random() * 5) + 1][3] = {
+          x: 3, y: 2,
+          type: TILE_BLOCK,
+          fixed: true
+        };
+
+        state.inventory = [
+          { type: TILE_MIRROR, count: 4, rot: 0 },
+          { type: TILE_SPLITTER, count: 1, rot: 0 }
+        ];
+        state.selectedToolIdx = 0;
+
+        resizeCanvas();
+        updateHUD();
+        renderInventoryDock();
+        traceLaserRays();
+      }
+
+      // --- Pointer / Touch Input Handlers ---
+      function handlePointerDown(e) {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+        const x = Math.floor((clientX - rect.left) / cellSize);
+        const y = Math.floor((clientY - rect.top) / cellSize);
+
+        if (e.button === 2) {
+          handleCellRightClick(x, y);
+        } else {
+          handleCellClick(x, y);
+        }
+      }
+
+      canvas.addEventListener('mousedown', handlePointerDown);
+      canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
+      canvas.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) / cellSize);
+        const y = Math.floor((e.clientY - rect.top) / cellSize);
+        handleCellRightClick(x, y);
+      });
+
+      // --- UI Button Event Listeners ---
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        audio.playClick();
+        initLevel(state.currentLevelIndex);
+      });
+
+      document.getElementById('undoBtn').addEventListener('click', () => {
+        undoLastMove();
+      });
+
+      document.getElementById('hintBtn').addEventListener('click', giveHint);
+
+      document.getElementById('sandboxBtn').addEventListener('click', () => {
+        audio.playClick();
+        generateProceduralLab();
+      });
+
+      document.getElementById('levelSelectBtn').addEventListener('click', openLevelSelect);
+      document.getElementById('brandBtn').addEventListener('click', openLevelSelect);
+      document.getElementById('closeLevelModalBtn').addEventListener('click', () => {
+        document.getElementById('levelModal').classList.remove('active');
+      });
+
+      document.getElementById('guideBtn').addEventListener('click', () => {
+        audio.playClick();
+        document.getElementById('guideModal').classList.add('active');
+      });
+      document.getElementById('closeGuideBtn').addEventListener('click', () => {
+        audio.playClick();
+        document.getElementById('guideModal').classList.remove('active');
+      });
+
+      document.getElementById('soundToggleBtn').addEventListener('click', e => {
+        audio.init();
+        audio.soundEnabled = !audio.soundEnabled;
+        e.target.textContent = audio.soundEnabled ? '🔊' : '🔇';
+      });
+
+      document.getElementById('musicToggleBtn').addEventListener('click', e => {
+        const active = audio.toggleMusic();
+        e.target.textContent = active ? '🎶' : '🎵';
+      });
+
+      document.getElementById('replayLevelBtn').addEventListener('click', () => {
+        document.getElementById('victoryModal').classList.remove('active');
+        initLevel(state.currentLevelIndex);
+      });
+
+      document.getElementById('nextLevelBtn').addEventListener('click', () => {
+        document.getElementById('victoryModal').classList.remove('active');
+        if (state.currentLevelIndex + 1 < LEVELS.length) {
+          initLevel(state.currentLevelIndex + 1);
+        } else {
+          openLevelSelect();
+        }
+      });
+
+      // --- Boot sequence ---
+      loadSavedProgress();
+      initLevel(0);
+      requestAnimationFrame(render);
+
+    })();
+  </script>
+</body>
+</html>
